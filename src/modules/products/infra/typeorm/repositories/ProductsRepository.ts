@@ -29,15 +29,29 @@ class ProductsRepository implements IProductsRepository {
   }
 
   public async findAllById(products: IFindProducts[]): Promise<Product[]> {
-    return Promise.resolve([]);
-    // TODO
+    const ids = products.map(product => product.id);
+    return await this.ormRepository.findByIds(ids);
   }
 
   public async updateQuantity(
     products: IUpdateProductsQuantityDTO[],
   ): Promise<Product[]> {
-    return Promise.resolve([]);
-    // TODO
+    const productsRecovered = await this.findAllById(products);
+
+    const map = productsRecovered.map(productRecovered => {
+      const index = products.findIndex(
+        product => product.id === productRecovered.id,
+      );
+
+      productRecovered.quantity =
+        productRecovered.quantity - products[index].quantity;
+
+      this.ormRepository.save(productRecovered);
+
+      return productRecovered;
+    });
+
+    return map;
   }
 }
 

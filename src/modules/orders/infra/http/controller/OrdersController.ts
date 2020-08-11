@@ -9,9 +9,13 @@ export default class OrdersController {
   public async show(request: Request, response: Response): Promise<Response> {
     const { id } = request.params;
 
-    const orders = await container.resolve(FindOrderService).execute({ id });
+    const order = await container.resolve(FindOrderService).execute({ id });
 
-    return response.json(orders);
+    const orderFormatted = order?.order_products.map(orderProduct => {
+      return { ...orderProduct, price: Number(orderProduct.price).toFixed(2) };
+    });
+
+    return response.json({ ...order, order_products: orderFormatted });
   }
 
   public async create(request: Request, response: Response): Promise<Response> {
@@ -21,6 +25,12 @@ export default class OrdersController {
       .resolve(CreateOrderService)
       .execute({ customer_id, products });
 
-    return response.status(201).json(order);
+    const orderFormatted = order.order_products.map(orderProduct => {
+      return { ...orderProduct, price: Number(orderProduct.price).toFixed(2) };
+    });
+
+    return response
+      .status(201)
+      .json({ ...order, order_products: orderFormatted });
   }
 }
